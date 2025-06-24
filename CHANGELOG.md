@@ -2,7 +2,42 @@
 
 ## Sprint 2 - June 24, 2025 (Latest Updates)
 
-### 🎯 Major UI/UX Improvements
+### � NEW: Command Line Interface (CLI)
+
+#### 📱 Standalone CLI Application
+- **New CLI Tool**: Added `main_cli.py` - a complete command-line interface for the RAG system
+- **Simple Usage**: Research questions directly from the terminal without web interface
+- **Progress Tracking**: Real-time progress updates during research process
+- **Flexible Configuration**: Customizable search queries and answer rewordings via command-line options
+
+#### 💾 Automated File Output
+- **Timestamped Results**: All research results automatically saved to timestamped `.txt` files
+- **Custom Output Directory**: `--output-dir` option to specify where results are saved
+- **Complete Documentation**: Saved files include full research steps, evaluations, and metrics
+- **Persistent Storage**: Results preserved for future reference and analysis
+
+#### 🛠️ CLI Features
+- **Argument Parsing**: Full argparse integration with help documentation
+- **Verbose Mode**: `--verbose` flag for detailed progress information
+- **Error Handling**: Graceful handling of missing environment variables and API errors
+- **Convenience Script**: `run_cli.sh` wrapper script for easy execution
+
+#### 📋 CLI Usage Examples
+```bash
+# Basic usage
+./run_cli.sh "What are the benefits of renewable energy?"
+
+# Advanced configuration
+./run_cli.sh "How does AI work?" --searches 5 --rewordings 2 --verbose --output-dir ./research
+```
+
+#### 🏗️ Architecture Benefits
+- **Code Reuse**: CLI leverages existing RAG system without duplication
+- **Separation of Concerns**: Clean separation between web and CLI interfaces
+- **Consistent Results**: Same research quality as web interface
+- **Easy Maintenance**: Shared core functionality between interfaces
+
+### �🎯 Major UI/UX Improvements
 
 #### 🏷️ Research Query Terminology
 - **Changed "Steps" to "Queries"**: Updated UI terminology from "Research Process" to "Research Queries" for better clarity

@@ -54,6 +54,9 @@ logs/
 *.log.*
 log/
 
+# Output files from CLI
+output/
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
