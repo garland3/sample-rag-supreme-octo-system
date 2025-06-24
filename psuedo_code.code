@@ -1,0 +1,58 @@
+def PERPLEXITY_PIPELINE(user_query):
+    # 1. ROUTE —— decide fast-answer vs. deep research
+    intent = intent_router(user_query)
+    if intent == "quick": return direct_llm(user_query)
+
+    # 2. INITIAL PLAN —— LLM drafts a JSON list of actions
+    plan = planner_llm(f"""
+        You are ResearchPlanner.
+        Break “{user_query}” into ordered ACTIONS.
+        ACTION can be:
+          - "search":  {{"query": <string>}}
+          - "analyze": {{"task": <compare | dedupe | calc | decide_next>}}
+        Output JSON list.
+    """).json()
+
+    notes = []                      # scratchpad for transparency
+    loop_count = 0
+    while plan and loop_count < MAX_ITER:
+        loop_count += 1
+        new_info = []               # material collected this pass
+
+        for step in plan:
+            if step["type"] == "search":
+                docs = web_search(step["query"])
+                for d in docs:
+                    summary = summarizer_llm(clean(d.text))
+                    new_info.append({"url": d.url, "summary": summary})
+
+            elif step["type"] == "analyze":
+                result = analysis_tool(step["task"], new_info, notes)
+                new_info.append({"analysis": result})
+
+        notes.extend(new_info)
+
+        # 3. COVERAGE CHECK —— do we need another round?
+        gaps = coverage_checker_llm(f"""
+            Original question: {user_query}
+            Current findings:\n{notes}
+            List any missing sub-topics OR return "complete".
+        """)
+        if gaps == "complete":
+            break
+
+        # 4. LOOP BACK —— planner writes extra actions for uncovered gaps
+        plan = planner_llm(f"""
+            We still need: {gaps}
+            Produce additional ACTIONS (search or analyze) to fill gaps.
+            Follow same JSON schema.
+        """).json()
+
+    # 5. FINAL SYNTHESIS
+    answer = synthesizer_llm(f"""
+        Question: {user_query}
+        Findings:\n{notes}
+        Write a clear answer ≤4 paragraphs.
+        Add citation numbers that map to `url` fields.
+    """)
+    return answer
