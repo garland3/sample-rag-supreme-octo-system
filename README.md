@@ -2,6 +2,8 @@
 
 A modern Retrieval-Augmented Generation (RAG) system that combines web search with AI-powered analysis to provide comprehensive, research-backed answers to your questions.
 
+![RAG Research System Screenshot](imgs/image.png)
+
 ## ✨ Features
 
 - **🔍 Web Search Integration**: Uses Tavily API for comprehensive web searches

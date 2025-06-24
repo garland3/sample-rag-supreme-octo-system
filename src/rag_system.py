@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Callable
 
-from .models import SearchResult, ResearchStep, RAGRequest, RAGResponse, ProgressUpdate
+from .models import SearchResult, ResearchStep, RAGRequest, RAGResponse, ProgressUpdate, EvaluationResult, EvaluationAction
 from .llm_client import LLMClient
 from .search_client import SearchClient
 
@@ -93,7 +93,9 @@ class RAGSystem:
     async def research_question(self, 
                               question: str, 
                               session_id: Optional[str] = None,
-                              progress_callback: Optional[Callable] = None) -> RAGResponse:
+                              progress_callback: Optional[Callable] = None,
+                              num_searches: int = 3,
+                              num_rewordings: int = 3) -> RAGResponse:
         """Main method to research a question using the RAG pipeline."""
         
         # Generate session ID if not provided
@@ -113,7 +115,7 @@ class RAGSystem:
                                      "🤖 Analyzing your question and generating search queries...", progress_callback)
             session_logger.info("Generating search queries")
             
-            queries = self.llm_client.generate_search_queries(question)
+            queries = self.llm_client.generate_search_queries(question, num_queries=num_searches)
             session_logger.info(f"Generated {len(queries)} queries: {queries}")
             
             await self._send_progress_update(session_id, 1, 6, "queries_generated", 
@@ -179,10 +181,10 @@ class RAGSystem:
             await self._send_progress_update(session_id, 5, 6, "all_analysis_complete", 
                                      "✅ All search result analysis completed", progress_callback)
             
-            # Step 4: Synthesize final answer
+            # Step 5: Synthesize and evaluate answers with LLM judge
             await self._send_progress_update(session_id, 6, 6, "synthesizing", 
-                                     "🔗 Synthesizing comprehensive answer from all research...", progress_callback)
-            session_logger.info("Synthesizing final answer")
+                                     "🔗 Synthesizing answer and evaluating quality...", progress_callback)
+            session_logger.info("Starting synthesis and evaluation loop")
             
             # Prepare research data for synthesis
             research_data = [
@@ -193,26 +195,104 @@ class RAGSystem:
                 for step in research_steps
             ]
             
-            await self._send_progress_update(session_id, 6, 6, "compiling", 
-                                     f"📝 Compiling insights from {len(research_data)} research analyses...", progress_callback)
+            # Prepare research context for evaluation
+            research_context = "\n\n".join([
+                f"Query: {step.query}\nAnalysis: {step.analysis}"
+                for step in research_steps
+            ])
             
-            final_answer = self.llm_client.synthesize_final_answer(question, research_data)
-            session_logger.info("Research completed successfully")
+            # Main evaluation loop - max iterations to prevent infinite loops
+            max_iterations = num_rewordings
+            current_iteration = 0
+            final_answer = None
+            evaluation_result = None
+            
+            while current_iteration < max_iterations:
+                current_iteration += 1
+                iteration_msg = f" (attempt {current_iteration}/{max_iterations})" if current_iteration > 1 else ""
+                
+                await self._send_progress_update(session_id, 6, 6, "synthesizing", 
+                                       f"📝 Generating comprehensive answer{iteration_msg}...", progress_callback)
+                
+                # Generate answer based on iteration type
+                if current_iteration == 1:
+                    # First attempt - normal synthesis
+                    final_answer = self.llm_client.synthesize_final_answer(question, research_data)
+                    session_logger.info(f"Generated initial answer (iteration {current_iteration})")
+                elif evaluation_result and evaluation_result.action == EvaluationAction.REDO_FINAL_RESPONSE:
+                    # Redo with guidance from previous evaluation
+                    final_answer = self.llm_client.regenerate_answer_with_guidance(
+                        question, research_data, evaluation_result.improvement_guidance or "Improve clarity and completeness"
+                    )
+                    session_logger.info(f"Regenerated answer with guidance (iteration {current_iteration})")
+                elif evaluation_result and evaluation_result.action == EvaluationAction.RESEARCH_AGAIN:
+                    # Research additional topics as suggested by evaluation
+                    await self._send_progress_update(session_id, 6, 6, "additional_research", 
+                                           f"🔍 Conducting additional research{iteration_msg}...", progress_callback)
+                    
+                    if evaluation_result.missing_topics:
+                        additional_research = await self._conduct_additional_research(
+                            evaluation_result.missing_topics, session_id, progress_callback, session_logger
+                        )
+                        # Add new research to existing data
+                        research_data.extend(additional_research)
+                        # Update research context
+                        research_context = "\n\n".join([
+                            f"Query: {item['query']}\nAnalysis: {item['analysis']}"
+                            for item in research_data
+                        ])
+                    
+                    # Now synthesize with enhanced research
+                    final_answer = self.llm_client.synthesize_final_answer(question, research_data)
+                    session_logger.info(f"Generated answer with additional research (iteration {current_iteration})")
+                
+                # Evaluate the answer using LLM as judge
+                await self._send_progress_update(session_id, 6, 6, "evaluating", 
+                                       f"⚖️ Evaluating answer quality{iteration_msg}...", progress_callback)
+                
+                evaluation_result = self.llm_client.evaluate_answer(question, final_answer, research_context)
+                
+                session_logger.info(f"Evaluation result (iteration {current_iteration}): "
+                                  f"Action={evaluation_result.action.value}, "
+                                  f"Score={evaluation_result.overall_score:.1f}, "
+                                  f"Reasoning={evaluation_result.reasoning}")
+                
+                # Check if we should return the answer
+                if evaluation_result.action == EvaluationAction.SUFFICIENT:
+                    await self._send_progress_update(session_id, 6, 6, "evaluation_passed", 
+                                           f"✅ Answer quality approved (score: {evaluation_result.overall_score:.1f}/10)", progress_callback)
+                    break
+                elif current_iteration >= max_iterations:
+                    await self._send_progress_update(session_id, 6, 6, "max_iterations", 
+                                           f"⚠️ Reached maximum iterations - using best available answer", progress_callback)
+                    session_logger.warning(f"Reached maximum evaluation iterations ({max_iterations})")
+                    break
+                else:
+                    action_msg = {
+                        EvaluationAction.REDO_FINAL_RESPONSE: "improving answer structure",
+                        EvaluationAction.RESEARCH_AGAIN: "conducting additional research"
+                    }.get(evaluation_result.action, "refining answer")
+                    
+                    await self._send_progress_update(session_id, 6, 6, "improvement_needed", 
+                                           f"🔄 Score {evaluation_result.overall_score:.1f}/10 - {action_msg}...", progress_callback)
+            
+            session_logger.info("Research and evaluation completed successfully")
             
             await self._send_progress_update(session_id, 6, 6, "finalizing", 
                                      "✨ Finalizing comprehensive research report...", progress_callback)
             
-            # Create response
+            # Create response with evaluation metrics
             response = RAGResponse(
                 answer=final_answer,
                 research_steps=research_steps,
                 session_id=session_id,
                 total_steps=len(research_steps),
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
+                evaluation_result=evaluation_result
             )
             
             await self._send_progress_update(session_id, 6, 6, "completed", 
-                                     "🎉 Research completed! Comprehensive answer ready.", progress_callback)
+                                     f"🎉 Research completed! Quality score: {evaluation_result.overall_score:.1f}/10", progress_callback)
             
             return response
             
@@ -221,6 +301,45 @@ class RAGSystem:
             await self._send_progress_update(session_id, 0, 4, "error", 
                                      f"Research failed: {str(e)}", progress_callback)
             raise
+    
+    async def _conduct_additional_research(self, 
+                                          missing_topics: List[str], 
+                                          session_id: str,
+                                          progress_callback: Optional[Callable],
+                                          session_logger: logging.Logger) -> List[Dict[str, Any]]:
+        """Conduct additional research on missing topics."""
+        additional_research = []
+        
+        for i, topic in enumerate(missing_topics, 1):
+            await self._send_progress_update(session_id, 6, 6, "additional_search", 
+                                   f"🔍 Researching additional topic: \"{topic[:50]}{'...' if len(topic) > 50 else ''}\" ({i}/{len(missing_topics)})", progress_callback)
+            
+            session_logger.info(f"Conducting additional research on: {topic}")
+            
+            # Search for the missing topic
+            search_results = self.search_client.search(topic, max_results=2)
+            
+            # Convert SearchResult objects to dict for analysis
+            results_data = [
+                {
+                    "title": result.title,
+                    "url": result.url,
+                    "content": result.content
+                }
+                for result in search_results
+            ]
+            
+            # Analyze the additional research
+            analysis = self.llm_client.analyze_search_results(topic, results_data)
+            
+            additional_research.append({
+                "query": topic,
+                "analysis": analysis
+            })
+            
+            session_logger.info(f"Completed additional research for: {topic}")
+        
+        return additional_research
     
     def get_session_logs(self, session_id: str) -> Optional[str]:
         """Get the logs for a specific session."""

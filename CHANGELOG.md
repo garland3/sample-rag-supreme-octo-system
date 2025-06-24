@@ -1,5 +1,76 @@
 # Changelog
 
+## Sprint 2 - June 24, 2025 (Latest Updates)
+
+### 🎯 Major UI/UX Improvements
+
+#### 🏷️ Research Query Terminology
+- **Changed "Steps" to "Queries"**: Updated UI terminology from "Research Process" to "Research Queries" for better clarity
+- **Query-Focused Display**: Each research step now clearly labeled as "Query X" instead of "Step X"
+- **Improved User Understanding**: Better communication of what each research phase represents
+
+#### 📊 Enhanced Quality Assessment
+- **Judge Score Display**: AI quality assessment now appears below the research queries section for better flow
+- **Improved Layout**: Moved evaluation metrics to appear after users can review the research process
+- **Quality Metrics**: Detailed scoring for accuracy, completeness, relevance, clarity, and confidence
+- **Visual Score Representation**: Color-coded overall scores with detailed metric breakdowns
+
+#### ⚙️ Configurable Research Settings
+- **Customizable Search Queries**: Users can now set the number of search queries (1-10, default: 3)
+- **Adjustable Answer Iterations**: Configurable maximum answer improvement attempts (1-5, default: 3)
+- **Real-time Settings**: Settings applied immediately to each research session
+- **Advanced Research Options**: Power users can increase complexity for more thorough research
+
+#### 🎨 Simplified & Clean Styling
+- **Streamlined CSS**: Dramatically reduced CSS from 925+ lines to ~200 lines
+- **Modern Minimalism**: Cleaner, more focused design without unnecessary complexity
+- **Better Performance**: Faster page loads with simplified stylesheets
+- **Maintainable Code**: Much easier to maintain and customize styling
+
+#### 🔧 Technical Backend Improvements
+- **Dynamic Query Generation**: LLM client now accepts configurable number of queries
+- **Evaluation Loop Enhancement**: Configurable number of answer improvement iterations
+- **Parameter Passing**: Full integration of user settings through the entire pipeline
+- **Improved Response Structure**: Better data flow from frontend settings to backend processing
+
+### 📸 Documentation Enhancement
+- **Screenshot Added**: Added application screenshot (`imgs/image.png`) to README
+- **Visual Documentation**: Users can now see the interface before trying the application
+- **Improved Onboarding**: Better first impression with visual representation
+
+### 🔄 Architecture Refinements
+- **Settings Integration**: Seamless integration of user preferences into research pipeline
+- **Frontend-Backend Communication**: Enhanced WebSocket message structure for settings
+- **Parameter Validation**: Proper validation of user input ranges for settings
+- **Default Value Management**: Sensible defaults with user override capabilities
+
+### 📁 Updated File Structure
+```
+├── src/
+│   ├── models.py          # Enhanced with evaluation models
+│   ├── llm_client.py      # Configurable query generation
+│   ├── search_client.py   # Search client (unchanged)
+│   └── rag_system.py      # Enhanced with configurable parameters
+├── templates/
+│   └── index.html         # Settings section and improved layout
+├── static/
+│   ├── css/
+│   │   └── styles.css     # Simplified from 925+ to ~200 lines
+│   └── js/
+│       └── app.js         # Enhanced settings handling
+├── imgs/
+│   └── image.png          # Application screenshot
+└── ...
+```
+
+### 🎯 User Experience Improvements
+- **Intuitive Controls**: Clear labels and hints for all settings
+- **Immediate Feedback**: Settings take effect on next research query
+- **Progressive Disclosure**: Advanced settings available but not overwhelming
+- **Better Information Architecture**: Logical flow from answer → queries → evaluation
+
+---
+
 ## Sprint 1 - June 24, 2025
 
 ### ✅ Completed Features

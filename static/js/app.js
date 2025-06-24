@@ -21,6 +21,8 @@ class RAGInterface {
         this.progressFill = document.getElementById('progressFill');
         this.progressText = document.getElementById('progressText');
         this.resultsSection = document.getElementById('resultsSection');
+        this.numSearches = document.getElementById('numSearches');
+        this.numRewordings = document.getElementById('numRewordings');
     }
 
     initializeMarkdown() {
@@ -240,6 +242,68 @@ class RAGInterface {
         // Process the answer with markdown
         const processedAnswer = this.md.render(result.answer);
         
+        // Generate evaluation metrics display if available
+        let evaluationHtml = '';
+        if (result.evaluation_result) {
+            const eval_result = result.evaluation_result;
+            const metrics = eval_result.metrics;
+            
+            evaluationHtml = `
+                <div class="evaluation-section">
+                    <h3><i class="fas fa-chart-bar"></i> Quality Assessment</h3>
+                    <div class="quality-score">
+                        <div class="overall-score ${this.getScoreClass(eval_result.overall_score)}">
+                            <span class="score-value">${eval_result.overall_score.toFixed(1)}</span>
+                            <span class="score-label">Overall Score</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <label>Accuracy</label>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: ${metrics.accuracy * 10}%"></div>
+                                <span class="metric-value">${metrics.accuracy}/10</span>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <label>Completeness</label>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: ${metrics.completeness * 10}%"></div>
+                                <span class="metric-value">${metrics.completeness}/10</span>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <label>Relevance</label>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: ${metrics.relevance * 10}%"></div>
+                                <span class="metric-value">${metrics.relevance}/10</span>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <label>Clarity</label>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: ${metrics.clarity * 10}%"></div>
+                                <span class="metric-value">${metrics.clarity}/10</span>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <label>Confidence</label>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: ${metrics.confidence * 10}%"></div>
+                                <span class="metric-value">${metrics.confidence}/10</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="evaluation-reasoning">
+                        <h4><i class="fas fa-brain"></i> Evaluation Reasoning</h4>
+                        <p>${eval_result.reasoning}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
         const resultHtml = `
             <div class="result-card">
                 <div class="result-answer">
@@ -248,13 +312,13 @@ class RAGInterface {
                 </div>
                 
                 <div class="research-steps">
-                    <h3><i class="fas fa-search"></i> Research Process</h3>
+                    <h3><i class="fas fa-search"></i> Research Queries</h3>
                     ${result.research_steps.map((step, index) => `
                         <div class="research-step">
                             <div class="step-header" onclick="ragInterface.toggleStep(this)">
                                 <span>
                                     <span class="status-indicator status-completed"></span>
-                                    Step ${step.step_number}: ${step.query}
+                                    Query ${step.step_number}: ${step.query}
                                 </span>
                                 <span class="step-arrow"><i class="fas fa-chevron-down"></i></span>
                             </div>
@@ -266,6 +330,8 @@ class RAGInterface {
                         </div>
                     `).join('')}
                 </div>
+                
+                ${evaluationHtml}
                 
                 <div class="session-info">
                     <div>
@@ -293,6 +359,13 @@ class RAGInterface {
         
         // Smooth scroll to results
         this.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    getScoreClass(score) {
+        if (score >= 8) return 'score-excellent';
+        if (score >= 7) return 'score-good';
+        if (score >= 5) return 'score-fair';
+        return 'score-poor';
     }
 
     showError(error) {
@@ -370,7 +443,11 @@ class RAGInterface {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify({
                 type: 'query',
-                content: question
+                content: question,
+                settings: {
+                    num_searches: parseInt(this.numSearches.value) || 3,
+                    num_rewordings: parseInt(this.numRewordings.value) || 3
+                }
             }));
         } else {
             this.showError('WebSocket connection not available. Please refresh the page.');

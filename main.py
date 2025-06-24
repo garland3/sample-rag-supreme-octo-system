@@ -53,6 +53,9 @@ async def websocket_endpoint(websocket: WebSocket):
             
             if message["type"] == "query":
                 query = message["content"]
+                settings = message.get("settings", {})
+                num_searches = settings.get("num_searches", 3)
+                num_rewordings = settings.get("num_rewordings", 3)
                 
                 # Create new RAG system instance for this session
                 session_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -88,25 +91,48 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 try:
                     # Process the query
-                    result = await rag_system.research_question(query, session_id, progress_callback)
+                    result = await rag_system.research_question(
+                        query, 
+                        session_id, 
+                        progress_callback,
+                        num_searches=num_searches,
+                        num_rewordings=num_rewordings
+                    )
                     
                     # Send final result
+                    response_content = {
+                        "answer": result.answer,
+                        "session_id": result.session_id,
+                        "total_steps": result.total_steps,
+                        "research_steps": [
+                            {
+                                "step_number": step.step_number,
+                                "query": step.query,
+                                "analysis": step.analysis
+                            }
+                            for step in result.research_steps
+                        ]
+                    }
+                    
+                    # Add evaluation result if available
+                    if result.evaluation_result:
+                        response_content["evaluation_result"] = {
+                            "action": result.evaluation_result.action.value,
+                            "overall_score": result.evaluation_result.overall_score,
+                            "reasoning": result.evaluation_result.reasoning,
+                            "metrics": {
+                                "accuracy": result.evaluation_result.metrics.accuracy,
+                                "completeness": result.evaluation_result.metrics.completeness,
+                                "relevance": result.evaluation_result.metrics.relevance,
+                                "clarity": result.evaluation_result.metrics.clarity,
+                                "confidence": result.evaluation_result.metrics.confidence
+                            }
+                        }
+                    
                     await manager.send_personal_message(
                         json.dumps({
                             "type": "result", 
-                            "content": {
-                                "answer": result.answer,
-                                "session_id": result.session_id,
-                                "total_steps": result.total_steps,
-                                "research_steps": [
-                                    {
-                                        "step_number": step.step_number,
-                                        "query": step.query,
-                                        "analysis": step.analysis
-                                    }
-                                    for step in result.research_steps
-                                ]
-                            }
+                            "content": response_content
                         }),
                         websocket
                     )
