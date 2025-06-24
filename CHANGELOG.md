@@ -79,3 +79,127 @@
 - [ ] Add unit tests
 - [ ] Performance optimization
 - [ ] Add authentication for production use
+
+### 🐛 Bug Fixes - June 24, 2025 (Evening)
+
+#### WebSocket Progress Callback Issue
+- **Fixed async callback warning**: Updated `_send_progress_update` to be async and properly awaited
+- **Resolved RuntimeWarning**: "coroutine 'websocket_endpoint.<locals>.progress_callback' was never awaited"
+- **Improved error handling**: Better async flow in progress updates
+
+#### Process Management
+- **Added stop.sh script**: Easy way to kill running FastAPI/uvicorn processes
+- **Multiple kill methods**: Process name, port-based, and backup killing strategies
+- **Clean shutdown**: Prevents hanging processes during development
+
+#### Environment Setup
+- **Auto-install uv**: `run.sh` now automatically installs uv via pip if not found
+- **Better error messages**: Clear instructions when uv installation fails
+- **Virtual environment fix**: Uses `.venv` directory (uv default) instead of `venv`
+
+### 🔧 Technical Details
+- Updated all `_send_progress_update` calls to use `await`
+- Added `./stop.sh` script for clean process termination
+- Enhanced `./run.sh` with automatic uv installation fallback
+- Fixed virtual environment path consistency
+
+### 📁 New Files
+- `stop.sh` - Process termination script
+
+### ✨ Major UI Enhancement - June 24, 2025 (Late Evening)
+
+#### 🎨 Professional UI Redesign
+- **Modern Design System**: Complete UI overhaul with professional gradient backgrounds and glass-morphism effects
+- **Typography Enhancement**: Added Inter and Fira Code fonts for better readability
+- **Advanced Animations**: Smooth transitions, hover effects, and loading animations
+- **Responsive Design**: Mobile-first approach with breakpoints for all screen sizes
+
+#### 📎 File Upload Capability
+- **File Attachment Feature**: Users can now attach text files (.txt, .md, .json, .csv, .xml, .py, .js, .html, .css)
+- **File Preview**: Real-time preview of uploaded file content
+- **File Size Validation**: 1MB file size limit with user-friendly error messages
+- **Content Integration**: File content automatically appended to research queries
+
+#### 📝 Markdown Support & Code Highlighting
+- **Full Markdown Rendering**: Research answers displayed with rich markdown formatting
+- **Syntax Highlighting**: Code blocks with copy-to-clipboard functionality
+- **Interactive Elements**: Expandable sections, animated progress indicators
+- **Copy Code Feature**: One-click code copying with visual feedback
+
+#### 🏗️ Modular Architecture
+- **Separated Concerns**: Split HTML, CSS, and JavaScript into separate files
+- **Static File Serving**: FastAPI serves CSS/JS assets efficiently
+- **Component-Based JS**: Object-oriented JavaScript with clean class structure
+- **Maintainable Code**: Each file focused on single responsibility
+
+#### 🔧 Enhanced User Experience
+- **Real-time Progress**: Animated progress bars with step-by-step updates
+- **Session Management**: Download and share session capabilities
+- **Auto-resize Input**: Textarea automatically adjusts to content
+- **Keyboard Shortcuts**: Enter to submit, Shift+Enter for new lines
+- **Error Handling**: Comprehensive error states with helpful messages
+
+#### 📁 New File Structure
+```
+static/
+├── css/
+│   └── styles.css      # Professional UI styles (400+ lines)
+└── js/
+    └── app.js          # Modern JavaScript application (300+ lines)
+templates/
+└── index.html          # Clean HTML structure (80 lines)
+```
+
+#### 🎯 Technical Improvements
+- **WebSocket Optimization**: Better async handling and reconnection logic
+- **Markdown Integration**: markdown-it library for rich text rendering
+- **Code Highlighting**: highlight.js for syntax-highlighted code blocks
+- **Icon System**: Font Awesome icons throughout the interface
+- **Performance**: Optimized loading and rendering performance
+
+### 📊 Enhanced Progress Tracking - June 24, 2025 (Night)
+
+#### 🔍 Detailed Progress Updates
+- **Granular Step Tracking**: Progress now shows 6 detailed steps instead of 4 generic ones
+- **Real-time Activity**: Specific messages for each action (searching, analyzing, synthesizing)
+- **Search Progress**: Individual progress for each search query with truncated preview
+- **Analysis Tracking**: Step-by-step analysis progress with source count information
+- **Synthesis Details**: Detailed compilation and finalization messages
+
+#### 📱 Enhanced UI Progress Display
+- **Activity Log**: Live activity log showing timestamped progress updates
+- **Visual Enhancements**: Emoji indicators and status-specific progress bar colors
+- **Step Indicators**: Clear step numbering with visual progress badges
+- **Auto-scrolling**: Automatic scrolling to show latest progress updates
+- **Responsive Messages**: Truncated long queries to fit UI elegantly
+
+#### 🎨 Progress Visual Improvements
+- **Status Colors**: Different progress bar colors for different phases
+  - 🔍 Orange for searching
+  - 🧠 Blue for analyzing  
+  - 🔗 Purple for synthesizing
+  - ✅ Green for completion
+- **Activity Animations**: Enhanced spinner animations for active states
+- **Smooth Transitions**: Fade-in animations for new log entries
+- **Clean Completion**: Progress log automatically clears on completion
+
+#### 📋 Detailed Progress Messages
+```
+🤖 Analyzing your question and generating search queries...
+✅ Generated 3 targeted search queries
+🔍 Searching for: "latest AI developments 2025..." (1/3)
+📄 Found 3 results for search 1/3
+🔬 Analyzing results for: "AI developments..." (1/3)
+📊 Processing 3 sources for analysis 1/3
+✅ Completed analysis 1/3
+🔗 Synthesizing comprehensive answer from all research...
+📝 Compiling insights from 3 research analyses...
+✨ Finalizing comprehensive research report...
+🎉 Research completed! Comprehensive answer ready.
+```
+
+#### 🔧 Technical Implementation
+- **6-Step Process**: More granular progress tracking (was 4, now 6 steps)
+- **Enhanced WebSocket**: Richer progress data with status codes and detailed messages
+- **Activity Logging**: In-memory activity log with automatic cleanup
+- **Status Management**: Better state management for different research phases

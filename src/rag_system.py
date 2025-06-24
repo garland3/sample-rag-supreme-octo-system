@@ -71,7 +71,7 @@ class RAGSystem:
         
         return session_logger
     
-    def _send_progress_update(self, 
+    async def _send_progress_update(self, 
                             session_id: str, 
                             step_number: int, 
                             total_steps: int, 
@@ -88,7 +88,7 @@ class RAGSystem:
                 message=message,
                 timestamp=datetime.now()
             )
-            progress_callback(update)
+            await progress_callback(update)
     
     async def research_question(self, 
                               question: str, 
@@ -109,26 +109,42 @@ class RAGSystem:
         
         try:
             # Step 1: Generate search queries
-            self._send_progress_update(session_id, 1, 4, "generating_queries", 
-                                     "Generating search queries...", progress_callback)
+            await self._send_progress_update(session_id, 1, 6, "generating_queries", 
+                                     "🤖 Analyzing your question and generating search queries...", progress_callback)
             session_logger.info("Generating search queries")
             
             queries = self.llm_client.generate_search_queries(question)
             session_logger.info(f"Generated {len(queries)} queries: {queries}")
             
-            # Step 2: Perform searches
-            self._send_progress_update(session_id, 2, 4, "searching", 
-                                     "Performing web searches...", progress_callback)
-            session_logger.info("Performing searches")
+            await self._send_progress_update(session_id, 1, 6, "queries_generated", 
+                                     f"✅ Generated {len(queries)} targeted search queries", progress_callback)
             
-            search_results_by_query = self.search_client.multi_search(queries, max_results_per_query=3)
+            # Step 2: Perform searches
+            search_results_by_query = {}
+            total_queries = len(queries)
+            
+            for i, query in enumerate(queries, 1):
+                await self._send_progress_update(session_id, 2, 6, "searching", 
+                                       f"🔍 Searching for: \"{query[:60]}{'...' if len(query) > 60 else ''}\" ({i}/{total_queries})", progress_callback)
+                session_logger.info(f"Searching for query {i}/{total_queries}: {query}")
+                
+                search_results = self.search_client.search(query, max_results=3)
+                search_results_by_query[query] = search_results
+                
+                await self._send_progress_update(session_id, 2, 6, "search_complete", 
+                                       f"📄 Found {len(search_results)} results for search {i}/{total_queries}", progress_callback)
+            
+            await self._send_progress_update(session_id, 3, 6, "searches_complete", 
+                                     f"✅ Completed all {total_queries} web searches", progress_callback)
             
             # Step 3: Analyze results for each query
-            self._send_progress_update(session_id, 3, 4, "analyzing", 
-                                     "Analyzing search results...", progress_callback)
+            await self._send_progress_update(session_id, 4, 6, "analyzing", 
+                                     "🧠 Starting analysis of search results...", progress_callback)
             session_logger.info("Analyzing search results")
             
-            for i, (query, search_results) in enumerate(search_results_by_query.items()):
+            for i, (query, search_results) in enumerate(search_results_by_query.items(), 1):
+                await self._send_progress_update(session_id, 4, 6, "analyzing_query", 
+                                       f"🔬 Analyzing results for: \"{query[:50]}{'...' if len(query) > 50 else ''}\" ({i}/{len(search_results_by_query)})", progress_callback)
                 session_logger.info(f"Analyzing results for query: {query}")
                 
                 # Convert SearchResult objects to dict for LLM analysis
@@ -141,10 +157,13 @@ class RAGSystem:
                     for result in search_results
                 ]
                 
+                await self._send_progress_update(session_id, 4, 6, "processing_sources", 
+                                       f"📊 Processing {len(results_data)} sources for analysis {i}/{len(search_results_by_query)}", progress_callback)
+                
                 analysis = self.llm_client.analyze_search_results(query, results_data)
                 
                 research_step = ResearchStep(
-                    step_number=i + 1,
+                    step_number=i,
                     query=query,
                     search_results=search_results,
                     analysis=analysis,
@@ -152,11 +171,17 @@ class RAGSystem:
                 )
                 
                 research_steps.append(research_step)
-                session_logger.info(f"Completed analysis for step {i + 1}")
+                session_logger.info(f"Completed analysis for step {i}")
+                
+                await self._send_progress_update(session_id, 4, 6, "analysis_complete", 
+                                       f"✅ Completed analysis {i}/{len(search_results_by_query)}", progress_callback)
+            
+            await self._send_progress_update(session_id, 5, 6, "all_analysis_complete", 
+                                     "✅ All search result analysis completed", progress_callback)
             
             # Step 4: Synthesize final answer
-            self._send_progress_update(session_id, 4, 4, "synthesizing", 
-                                     "Synthesizing final answer...", progress_callback)
+            await self._send_progress_update(session_id, 6, 6, "synthesizing", 
+                                     "🔗 Synthesizing comprehensive answer from all research...", progress_callback)
             session_logger.info("Synthesizing final answer")
             
             # Prepare research data for synthesis
@@ -168,8 +193,14 @@ class RAGSystem:
                 for step in research_steps
             ]
             
+            await self._send_progress_update(session_id, 6, 6, "compiling", 
+                                     f"📝 Compiling insights from {len(research_data)} research analyses...", progress_callback)
+            
             final_answer = self.llm_client.synthesize_final_answer(question, research_data)
             session_logger.info("Research completed successfully")
+            
+            await self._send_progress_update(session_id, 6, 6, "finalizing", 
+                                     "✨ Finalizing comprehensive research report...", progress_callback)
             
             # Create response
             response = RAGResponse(
@@ -180,14 +211,14 @@ class RAGSystem:
                 timestamp=datetime.now()
             )
             
-            self._send_progress_update(session_id, 4, 4, "completed", 
-                                     "Research completed!", progress_callback)
+            await self._send_progress_update(session_id, 6, 6, "completed", 
+                                     "🎉 Research completed! Comprehensive answer ready.", progress_callback)
             
             return response
             
         except Exception as e:
             session_logger.error(f"Research failed: {e}")
-            self._send_progress_update(session_id, 0, 4, "error", 
+            await self._send_progress_update(session_id, 0, 4, "error", 
                                      f"Research failed: {str(e)}", progress_callback)
             raise
     

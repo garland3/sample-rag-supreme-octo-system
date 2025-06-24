@@ -16,24 +16,34 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# Check if uv is installed
+# Check if uv is installed, install if not found
 if ! command -v uv &> /dev/null; then
-    echo "❌ Error: uv is not installed!"
-    echo "📝 Please install uv first:"
-    echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
-    echo "   # or: pip install uv"
-    exit 1
+    echo "📦 uv not found, installing uv..."
+    pip install uv
+    
+    # Check if installation was successful
+    if ! command -v uv &> /dev/null; then
+        echo "❌ Error: Failed to install uv!"
+        echo "📝 Please install uv manually:"
+        echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
+        echo "   # or: pip install uv"
+        exit 1
+    else
+        echo "✅ uv installed successfully!"
+    fi
+else
+    echo "✅ uv is already installed"
 fi
 
 # Check if virtual environment exists
-if [ ! -d "venv" ]; then
+if [ ! -d ".venv" ]; then
     echo "📦 Creating virtual environment with uv..."
     uv venv
 fi
 
 # Activate virtual environment
 echo "🔧 Activating virtual environment..."
-source venv/bin/activate
+source .venv/bin/activate
 
 # Install/upgrade dependencies with uv
 echo "📚 Installing dependencies with uv..."
