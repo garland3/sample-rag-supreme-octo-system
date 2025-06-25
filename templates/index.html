@@ -22,7 +22,17 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-search"></i> RAG Research System</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                    <h1><i class="fas fa-search"></i> RAG Research System</h1>
+                </div>
+                <a href="/chat" style="background: rgba(255,255,255,0.2); color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; transition: background-color 0.2s;" 
+                   onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'" 
+                   onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'" 
+                   title="Switch to Chat Mode">
+                    <i class="fas fa-comments"></i> Chat Mode
+                </a>
+            </div>
             <p>Professional AI-powered research assistant with file upload and markdown support</p>
         </div>
         

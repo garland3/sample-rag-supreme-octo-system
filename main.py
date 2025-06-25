@@ -38,7 +38,17 @@ manager = ConnectionManager()
 
 @app.get("/", response_class=HTMLResponse)
 async def get_home(request: Request):
+    ui_mode = os.getenv("UI_MODE", "standard").lower()
+    template = "index2.html" if ui_mode == "chat" else "index.html"
+    return templates.TemplateResponse(template, {"request": request})
+
+@app.get("/standard", response_class=HTMLResponse)
+async def get_standard_ui(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/chat", response_class=HTMLResponse)
+async def get_chat_ui(request: Request):
+    return templates.TemplateResponse("index2.html", {"request": request})
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
