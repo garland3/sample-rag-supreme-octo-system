@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Research System - Professional AI Research Assistant</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div>
+                    <h1><i class="fas fa-search"></i> RAG Research System</h1>
+                </div>
+                <a href="/chat" style="background: rgba(255,255,255,0.2); color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; transition: background-color 0.2s;" 
+                   onmouseover="this.style.backgroundColor='rgba(255,255,255,0.3)'" 
+                   onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'" 
+                   title="Switch to Chat Mode">
+                    <i class="fas fa-comments"></i> Chat Mode
+                </a>
+            </div>
+            <p>Professional AI-powered research assistant with file upload and markdown support</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-container">
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <textarea 
+                                id="questionInput" 
+                                placeholder="Ask any question you'd like to research... You can also upload a file to include its content in your query."
+                                rows="2"
+                            ></textarea>
+                        </div>
+                        <button id="askButton">
+                            <i class="fas fa-search"></i>
+                            Ask Question
+                        </button>
+                    </div>
+                    
+                    <div class="file-controls">
+                        <button class="file-upload-btn" id="fileUploadBtn">
+                            <i class="fas fa-paperclip"></i>
+                            Attach File
+                        </button>
+                        <input type="file" id="fileInput" accept=".txt,.md,.json,.csv,.xml,.py,.js,.html,.css">
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h4><i class="fas fa-cog"></i> Research Settings</h4>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="numSearches">Number of Search Queries</label>
+                                <input type="number" id="numSearches" min="1" max="10" value="3">
+                                <span class="setting-hint">How many different search queries to generate</span>
+                            </div>
+                            <div class="setting-item">
+                                <label for="numRewordings">Maximum Answer Iterations</label>
+                                <input type="number" id="numRewordings" min="1" max="5" value="3">
+                                <span class="setting-hint">Maximum attempts to improve the answer quality</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="file-preview" id="filePreview">
+                        <!-- File preview will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="progress-section" id="progressSection" style="display: none;">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">
+                        <div class="progress-spinner"></div>
+                        Initializing...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-section" id="resultsSection">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

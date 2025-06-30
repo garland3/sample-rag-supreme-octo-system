@@ -1,0 +1,8 @@
+include README.md
+include CHANGELOG.md
+include requirements.txt
+include LICENSE
+recursive-include ai_search_supreme_octo/templates *.html
+recursive-include ai_search_supreme_octo/static *.css *.js
+global-exclude __pycache__
+global-exclude *.py[co]

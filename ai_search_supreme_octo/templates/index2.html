@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Research System - Chat Interface</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.0/dist/purify.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Chat Interface Styles -->
+    <link rel="stylesheet" href="/static/css/chat-styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="panel left-panel">
+            <div class="panel-header">
+                <div class="header-content">
+                    <i class="fas fa-search"></i> RAG Research Chat
+                </div>
+                <div class="header-actions">
+                    <a href="/standard" class="mode-switch-btn" title="Switch to Standard Mode">
+                        <i class="fas fa-th-large"></i>
+                    </a>
+                    <span id="connectionStatus" class="connection-status connected">Ready</span>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div id="messages"></div>
+                <div class="input-area">
+                    <div class="file-upload-area">
+                        <input type="file" id="fileInput" accept=".txt,.md,.py,.js,.json,.csv,.xml,.html,.css">
+                        <label for="fileInput">
+                            <i class="fas fa-paperclip"></i>
+                            Upload File
+                        </label>
+                        <span id="fileNameDisplay">No file selected</span>
+                        <button id="clearFileButton">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="message-input-container">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Ask your research question... You can also upload a file to include its content."
+                            rows="2"
+                        ></textarea>
+                        <button id="sendButton">
+                            <i class="fas fa-search"></i>
+                            Research
+                        </button>
+                    </div>
+                    <div class="research-settings">
+                        <div class="settings-row">
+                            <div class="setting-item">
+                                <label for="numSearches">Search Queries: <span id="searchesValue">3</span></label>
+                                <input type="range" id="numSearches" min="1" max="10" value="3">
+                            </div>
+                            <div class="setting-item">
+                                <label for="numRewordings">Max Iterations: <span id="rewordingsValue">3</span></label>
+                                <input type="range" id="numRewordings" min="1" max="5" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="splitter" id="splitter"></div>
+        
+        <div class="panel right-panel">
+            <div class="panel-header">
+                <div class="header-content">
+                    <i class="fas fa-file-alt"></i> Research Results
+                </div>
+                <div class="header-actions">
+                    <button id="exportButton" class="export-btn" title="Export Results">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div id="output" class="status">
+                    <div class="welcome-message">
+                        <i class="fas fa-lightbulb"></i>
+                        <h3>Welcome to RAG Research Chat</h3>
+                        <p>Ask any research question to get started. You can upload files to include their content in your research context.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="/static/js/chat-app.js"></script>
+</body>
+</html>

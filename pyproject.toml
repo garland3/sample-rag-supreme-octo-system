@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-search-supreme-octo"
+version = "1.0.0"
+description = "A modern RAG system that combines web search with AI-powered analysis"
+readme = "README.md"
+authors = [{name = "AI Search Supreme Octo Team", email = "contact@example.com"}]
+license = "MIT"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+]
+keywords = ["rag", "ai", "search", "research", "llm", "retrieval", "augmented", "generation", "tavily", "openai"]
+requires-python = ">=3.8"
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn>=0.24.0",
+    "websockets>=12.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+    "pydantic>=2.5.0",
+    "aiofiles>=23.2.1",
+    "jinja2>=3.1.2",
+    "tavily-python>=0.3.0",
+    "openai>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+]
+cohere = [
+    "cohere>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/ai-search-supreme-octo"
+Documentation = "https://github.com/your-username/ai-search-supreme-octo#readme"
+Repository = "https://github.com/your-username/ai-search-supreme-octo"
+"Bug Reports" = "https://github.com/your-username/ai-search-supreme-octo/issues"
+
+[project.scripts]
+ai-search-supreme-octo = "ai_search_supreme_octo.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ai_search_supreme_octo*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+ai_search_supreme_octo = ["templates/*.html", "static/css/*.css", "static/js/*.js"]

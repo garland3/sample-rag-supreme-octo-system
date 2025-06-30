@@ -1,4 +1,4 @@
-# 🔍 RAG Research System
+# 🔍 AI Search Supreme Octo
 
 A modern Retrieval-Augmented Generation (RAG) system that combines web search with AI-powered analysis to provide comprehensive, research-backed answers to your questions.
 
@@ -13,8 +13,134 @@ A modern Retrieval-Augmented Generation (RAG) system that combines web search wi
 - **🔧 Modular Architecture**: Clean, maintainable codebase under 300 lines per file
 - **📝 Session Logging**: Individual log files for each research session
 - **⚡ Fast Package Management**: Uses `uv` for lightning-fast Python package management
+- **📦 PyPI Package**: Easy installation and programmatic usage
 
-## 🚀 Quick Start
+## 📦 Installation
+
+### From PyPI (Recommended)
+
+```bash
+pip install ai-search-supreme-octo
+```
+
+### From Source
+
+1. **Install uv** (if not already installed):
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   # or: pip install uv
+   ```
+
+2. **Clone and setup**:
+   ```bash
+   git clone <repository-url>
+   cd sample-rag-supreme-octo-system
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   ./run.sh
+   ```
+
+## 🔑 Configuration
+
+### API Keys Required
+
+- [Tavily API Key](https://tavily.com/) for web search  
+- OpenAI API Key or any OpenAI-compatible LLM endpoint
+
+### Environment Setup
+
+Create a `.env` file or set environment variables:
+
+```bash
+# OpenAI-compatible LLM configuration
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4
+LLM_API_KEY=your_openai_api_key
+
+# Tavily search configuration  
+TAVILY_API_KEY=your_tavily_api_key
+
+# Optional: Cohere for reranking
+COHERE_API_KEY=your_cohere_api_key
+```
+
+## 🚀 Usage
+
+### Programmatic Usage
+
+```python
+import asyncio
+from ai_search_supreme_octo import research_question
+
+async def main():
+    # Simple usage
+    result = await research_question(
+        "What are the latest developments in renewable energy?",
+        max_search_queries=3,
+        max_iterations=2
+    )
+    
+    print(f"Answer: {result.answer}")
+    print(f"Research steps: {len(result.research_steps)}")
+
+# Run the example
+asyncio.run(main())
+```
+
+### Advanced Programmatic Usage
+
+```python
+import asyncio
+from ai_search_supreme_octo import RAGSystem
+
+async def advanced_example():
+    def progress_callback(update):
+        print(f"Progress: {update.step_number}/{update.total_steps} - {update.message}")
+    
+    rag = RAGSystem()
+    result = await rag.research_question(
+        question="How does AI impact climate change research?",
+        progress_callback=progress_callback,
+        num_searches=5,
+        num_rewordings=3
+    )
+    
+    print(f"Final Answer: {result.answer}")
+    for step in result.research_steps:
+        print(f"Step {step.step_number}: {step.query}")
+        for source in step.search_results[:2]:  # Show first 2 sources per step
+            print(f"  - {source.title}: {source.url}")
+
+asyncio.run(advanced_example())
+```
+
+### Command Line Usage
+
+```bash
+# Run CLI interface
+ai-search-supreme-octo
+
+# Or run web interface (after installation)
+python -m ai_search_supreme_octo.web
+```
+
+### Web Interface
+
+After installation, you can run the web interface:
+
+```python
+from ai_search_supreme_octo import create_app
+import uvicorn
+
+app = create_app()
+uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+Then visit `http://localhost:8000` in your browser.
+
+## 🚀 Quick Start (Legacy)
 
 ### Prerequisites
 
